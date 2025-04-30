@@ -9,7 +9,6 @@ class PrintEditionItem {
 
   fix() {
     this.state = this.state * 1.5;
-    return this.state;
   }
 
   set state(newState) {
@@ -72,22 +71,62 @@ class Library {
   addBook(book) {
     if (book.state > 30) {
       this.books.push(book);
-      return this.books;
+      return true;
     }
     return false;
   }
 
   findBookBy(type, value) {
-    const foundBook = this.books.find((book) => book[type] === value);
-    return foundBook || null;
+    for (const book of this.books) {
+      if (book[type] === value) {
+        return book;
+      }
+    }
+    return null;
   }
 
   giveBookByName(bookName) {
-    const bookIndex = this.books.findIndex((book) => book.name === bookName);
-    if (bookIndex === -1) return null;
-
-    return this.books.splice(bookIndex, 1)[0];
+    for (let i = 0; i < this.books.length; i++) {
+      if (this.books[i].name === bookName) {
+        return this.books.splice(i, 1)[0];
+      }
+    }
+    return null;
   }
+}
+
+const library = new Library("Центральная библиотека");
+
+library.addBook(new NovelBook("Лев Толстой", "Война и мир", 1869, 1225));
+library.addBook(
+  new FantasticBook(
+    "Аркадий и Борис Стругацкие",
+    "Пикник на обочине",
+    1972,
+    168
+  )
+);
+library.addBook(new DetectiveBook("Артур Конан Дойл", "Шерлок Холмс", 1892, 307));
+library.addBook(new Magazine("Наука и жизнь", 1965, 80));
+
+console.log("Всего книг в библиотеке:", library.books.length);
+
+const foundBook = library.findBookBy("releaseDate", 1972);
+console.log("Найдена книга:", foundBook ? foundBook.name : "не найдена");
+
+console.log("Количество книг до выдачи:", library.books.length);
+const givenBook = library.giveBookByName("Пикник на обочине");
+console.log("Количество книг после выдачи:", library.books.length);
+
+if (givenBook) {
+  givenBook.state = 20;
+  console.log("Состояние после повреждения:", givenBook.state);
+  givenBook.fix();
+  console.log("Состояние после восстановления:", givenBook.state);
+
+  const returned = library.addBook(givenBook);
+  console.log("Книга возвращена:", returned);
+  console.log("Теперь книг в библиотеке:", library.books.length);
 }
 
 class Student {
@@ -97,30 +136,54 @@ class Student {
   }
 
   addMark(mark, subject) {
-    if (mark < 2 || mark > 5) return;
+    if (mark < 2 || mark > 5) {
+      console.log(`Ошибка: оценка ${mark} по предмету ${subject} недопустима`);
+      return;
+    }
 
     if (!this.marks[subject]) {
       this.marks[subject] = [];
     }
 
     this.marks[subject].push(mark);
+    console.log(`Добавлена оценка ${mark} по предмету ${subject}`);
   }
 
   getAverageBySubject(subject) {
-    if (!this.marks[subject] || this.marks[subject].length === 0) return 0;
+    if (!this.marks[subject] || this.marks[subject].length === 0) {
+      console.log(`По предмету ${subject} нет оценок`);
+      return 0;
+    }
 
     const sum = this.marks[subject].reduce((acc, mark) => acc + mark, 0);
-    return sum / this.marks[subject].length;
+    const average = sum / this.marks[subject].length;
+    return average;
   }
 
   getAverage() {
     const subjects = Object.keys(this.marks);
-    if (subjects.length === 0) return 0;
 
-    const totalSum = subjects.reduce((sum, subject) => {
-      return sum + this.getAverageBySubject(subject);
+    if (subjects.length === 0) {
+      console.log("Нет предметов с оценками");
+      return 0;
+    }
+
+    const totalSum = subjects.reduce((acc, subject) => {
+      return acc + this.getAverageBySubject(subject);
     }, 0);
 
     return totalSum / subjects.length;
   }
 }
+
+const student = new Student("Олег Никифоров");
+
+student.addMark(5, "химия");
+student.addMark(5, "химия");
+student.addMark(5, "физика");
+student.addMark(4, "физика");
+student.addMark(6, "физика");
+
+console.log("Средний балл по физике:", student.getAverageBySubject("физика"));
+console.log("Средний балл по биологии:", student.getAverageBySubject("биология"));
+console.log("Общий средний балл:", student.getAverage());
